@@ -17,11 +17,29 @@ app.use(helmet());
 // ── CORS ──────────────────────────────────────────────────────────────────
 app.use(
   cors({
-    origin: [
-      process.env.CLIENT_URL || 'http://localhost:3000',
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, postman, or curl)
+      if (!origin) return callback(null, true);
+      
+      const allowedOrigins = [
+        process.env.CLIENT_URL,
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://localhost:5173',
+      ];
+      
+      const isAllowed = allowedOrigins.some(o => o && origin.startsWith(o)) ||
+                        origin.endsWith('.vercel.app') ||
+                        origin.endsWith('.netlify.app') ||
+                        origin.endsWith('.onrender.com') ||
+                        origin.includes('vercel.app'); // Robust coverage for custom subdomains
+                        
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
