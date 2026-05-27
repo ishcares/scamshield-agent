@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: scamshield_mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - scamshield_net
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: scamshield_server
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - MONGODB_URI=mongodb://mongo:27017/scamshield
+      - PORT=5000
+      - CLIENT_URL=http://localhost:3000
+      - NODE_ENV=production
+    depends_on:
+      - mongo
+    networks:
+      - scamshield_net
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: scamshield_client
+    restart: unless-stopped
+    ports:
+      - '3000:80'
+    depends_on:
+      - server
+    networks:
+      - scamshield_net
+
+volumes:
+  mongo_data:
+
+networks:
+  scamshield_net:
+    driver: bridge
