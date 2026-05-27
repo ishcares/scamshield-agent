@@ -1,7 +1,6 @@
 # ScamShield AI 🛡️
 ### *Autonomous AI Trust Assistant & Incident Telemetry Ledger*
 
-
 ScamShield AI is a state-of-the-art **AI Trust Assistant** built to defend job seekers, students, and digital citizens in India against recruitment scams, phishing networks, onboarding-fee fraud, UPI traps, and malicious digital impersonations.
 
 Rather than taking a generic "hacker theme" or terminal aesthetic, the system is built with a calm, elegant, and highly professional **AI Audit Workspace** matching the product design quality of Stripe, Perplexity, and Linear.
