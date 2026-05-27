@@ -12,27 +12,43 @@ export default function Home() {
   const [result, setResult] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [loadingStatus, setLoadingStatus] = useState('Executing natural language audit parameters via Gemini 1.5 Pro')
   const resultsRef = useRef(null)
 
   const handleAnalyze = async ({ text, file }) => {
     setIsLoading(true)
     setError(null)
     setResult(null)
+    setLoadingStatus('Running autonomous scam analysis via Gemini 1.5 Pro...')
+
+    const formData = new FormData()
+    if (file) {
+      formData.append('file', file)
+    } else {
+      formData.append('text', text)
+    }
+
+    const executeRequest = async (attempt = 1) => {
+      try {
+        const res = await axios.post(`${API_URL}/api/analyze`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 60000, // 60s for OCR + Gemini
+        })
+        return res.data
+      } catch (err) {
+        const isNetworkOrSleeping = !err.response || err.response.status === 503 || err.response.status === 504 || err.code === 'ECONNABORTED';
+        if (isNetworkOrSleeping && attempt < 3) {
+          setLoadingStatus(`Cloud server is waking up... Retrying (Attempt ${attempt}/3)...`)
+          await new Promise((resolve) => setTimeout(resolve, 5000))
+          return await executeRequest(attempt + 1)
+        }
+        throw err;
+      }
+    }
 
     try {
-      const formData = new FormData()
-      if (file) {
-        formData.append('file', file)
-      } else {
-        formData.append('text', text)
-      }
-
-      const res = await axios.post(`${API_URL}/api/analyze`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 60000, // 60s for OCR + Gemini
-      })
-
-      setResult(res.data)
+      const data = await executeRequest()
+      setResult(data)
 
       // Scroll to results
       setTimeout(() => {
@@ -115,7 +131,7 @@ export default function Home() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider">Compiling Trust Audit...</h3>
-                  <p className="text-[11px] text-slate-500 mt-1">Executing natural language audit parameters via Gemini 1.5 Pro</p>
+                  <p className="text-[11px] text-slate-500 mt-1">{loadingStatus}</p>
                 </div>
                 
                 {/* Visual telemetry scan log */}
