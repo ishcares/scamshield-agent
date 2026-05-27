@@ -10,6 +10,15 @@ Rather than taking a generic "hacker theme" or terminal aesthetic, the system is
 
 ---
 
+## 🌐 Live Production Cloud Deployments
+
+The full-stack application is live and publicly accessible:
+*   **Production Frontend Workspace**: [https://scamshield-ai-kappa.vercel.app/](https://scamshield-ai-kappa.vercel.app/)
+*   **Production Auditor API Server**: [https://scamshield-ai-p4ci.onrender.com/](https://scamshield-ai-p4ci.onrender.com/)
+*   **Database Health Check Registry**: [https://scamshield-ai-p4ci.onrender.com/health](https://scamshield-ai-p4ci.onrender.com/health)
+
+---
+
 ## 🏗️ Architectural Overview
 
 ```
