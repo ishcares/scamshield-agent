@@ -1,0 +1,23 @@
+# ─────────────────────────────────────────
+# ScamShield AI — Render Blueprint (render.yaml)
+# ─────────────────────────────────────────
+services:
+  # Express Backend API Server
+  - type: web
+    name: scamshield-api
+    env: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false # Render UI will prompt user to input this securely
+      - key: MONGODB_URI
+        sync: false # Render UI will prompt user for their MongoDB Atlas URI
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: CLIENT_URL
+        value: "*" # Standard CORS wildcard or custom frontend domain
