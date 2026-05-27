@@ -1,8 +1,6 @@
 # ScamShield AI 🛡️
 ### *Autonomous AI Trust Assistant & Incident Telemetry Ledger*
 
-[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ishcares/ScamShield-AI&root-directory=client)
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/ishcares/ScamShield-AI)
 
 ScamShield AI is a state-of-the-art **AI Trust Assistant** built to defend job seekers, students, and digital citizens in India against recruitment scams, phishing networks, onboarding-fee fraud, UPI traps, and malicious digital impersonations.
 
