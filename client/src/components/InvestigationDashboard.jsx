@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'
 import {
   Globe, CreditCard, AlertTriangle, Clock, Phone, Link2, User, Building,
-  Shield, Zap, CheckCircle2, AlertOctagon, HelpCircle, ChevronRight, FileText
+  Shield, Zap, CheckCircle2, AlertOctagon, HelpCircle, FileText
 } from 'lucide-react'
 import RiskBadge from './RiskBadge'
 import PatternMatch from './PatternMatch'
@@ -31,8 +30,6 @@ function EntityChip({ icon: Icon, label, value }) {
 }
 
 export default function InvestigationDashboard({ result }) {
-  const [activeStep, setActiveStep] = useState(0)
-
   if (!result) return null
 
   const {
@@ -65,49 +62,45 @@ export default function InvestigationDashboard({ result }) {
   else if (riskLevel === 'HIGH') trustIndex = Math.min(48, Math.max(25, 55 - (confidenceScore * 0.3)))
   else if (riskLevel === 'CRITICAL') trustIndex = Math.min(15, Math.max(5, 20 - (confidenceScore * 0.15)))
 
-  const trustScoreFormatted = Math.round(trustIndex)
+  const hasTrustScore = result.trustScore !== undefined
+  const trustScoreFormatted = hasTrustScore ? result.trustScore : Math.round(trustIndex)
 
-  // Determine trust status label & color
+  // Determine trust status label & color with requested rules:
+  // Green > 75, Yellow 50-75, Red < 50
   let trustStatus = 'Secure'
   let trustColor = '#10b981' // Emerald
   let trustTextClass = 'text-emerald-400'
   let trustBgClass = 'bg-emerald-500/10 border-emerald-500/20'
 
-  if (trustScoreFormatted < 30) {
+  if (!hasTrustScore) {
+    trustStatus = 'Analyzing...'
+    trustColor = '#3b82f6' // Blue
+    trustTextClass = 'text-blue-400'
+    trustBgClass = 'bg-blue-500/10 border-blue-500/20 animate-pulse'
+  } else if (trustScoreFormatted < 50) {
     trustStatus = 'Compromised'
-    trustColor = '#ef4444' // Rose/Red
+    trustColor = '#ef4444' // Red
     trustTextClass = 'text-rose-400'
     trustBgClass = 'bg-rose-500/10 border-rose-500/20'
-  } else if (trustScoreFormatted < 60) {
-    trustStatus = 'Highly Suspicious'
-    trustColor = '#f97316' // Orange
-    trustTextClass = 'text-orange-400'
-    trustBgClass = 'bg-orange-500/10 border-orange-500/20'
-  } else if (trustScoreFormatted < 85) {
-    trustStatus = 'Caution Advised'
-    trustColor = '#f59e0b' // Amber
+  } else if (trustScoreFormatted <= 75) {
+    trustStatus = 'Caution'
+    trustColor = '#f59e0b' // Yellow
     trustTextClass = 'text-amber-400'
     trustBgClass = 'bg-amber-500/10 border-amber-500/20'
   }
 
-  // Animation timeline ticks
-  const timelineSteps = [
-    { label: 'Domain Signature Analysis', desc: 'Resolving nameservers & MX reputation indices', status: domainScore > 50 ? 'secure' : 'flagged' },
-    { label: 'Recruiter Persona Audit', desc: 'Matching LinkedIn registries & company authorization listings', status: recruiterScore > 50 ? 'secure' : 'flagged' },
-    { label: 'Payment Channel Audit', desc: 'Evaluating UPI payloads & escrow pressure behaviors', status: paymentScore > 50 ? 'secure' : 'flagged' },
-    { label: 'Linguistic Urgency Vectors', desc: 'Parsing pressure triggers & conversational anomalies', status: languageScore > 50 ? 'secure' : 'flagged' },
-    { label: 'Pattern Index Match', desc: 'Cross-referencing real-time telemetry datasets', status: similarityScore > 50 ? 'secure' : 'flagged' },
-  ]
+  // Streaming vs Historic step resolution
+  const isStreaming = result.step !== undefined && !result.final
+  const currentStep = isStreaming ? result.step : 7 // 7 means all completed
 
-  useEffect(() => {
-    // Elegant progressive activation of investigation steps
-    const intervals = timelineSteps.map((_, i) => {
-      return setTimeout(() => {
-        setActiveStep(i + 1)
-      }, (i + 1) * 750)
-    })
-    return () => intervals.forEach(clearTimeout)
-  }, [])
+  const timelineSteps = [
+    { label: 'Entity Extraction Engine', desc: 'OCR & metadata parameter extraction', stepNum: 1 },
+    { label: 'Threat Ledger Query', desc: 'Vector comparison via MongoDB MCP tools', stepNum: 2 },
+    { label: 'Trust Index Resolver', desc: 'Weighted risk score calculation', stepNum: 3 },
+    { label: 'AI Threat Verdict', desc: 'Gemini 2.5 scam campaign classification', stepNum: 4 },
+    { label: 'Immutable Report Registry', desc: 'Persisting telemetry logs to database', stepNum: 5 },
+    { label: 'Escalation Mapping', desc: 'Generating official regulatory helpline routes', stepNum: 6 },
+  ]
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -139,36 +132,47 @@ export default function InvestigationDashboard({ result }) {
               
               {/* Radial Score Indicator */}
               <div className="flex-shrink-0 flex flex-col items-center gap-3 relative">
-                <div className="relative w-32 h-32 flex items-center justify-center">
-                  {/* SVG Segmented Ring */}
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                    {/* Background circle */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="rgba(255, 255, 255, 0.04)"
-                      strokeWidth="6"
-                      fill="transparent"
-                    />
-                    {/* Value circle */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke={trustColor}
-                      strokeWidth="6"
-                      fill="transparent"
-                      strokeDasharray="251.2"
-                      strokeDashoffset={251.2 - (251.2 * trustScoreFormatted) / 100}
-                      strokeLinecap="round"
-                      className="transition-all duration-1000 ease-out"
-                    />
+                <div className="relative w-36 h-36 flex items-center justify-center">
+                  <svg className={`w-full h-full ${!hasTrustScore ? 'animate-pulse' : ''}`} viewBox="0 0 120 120">
+                    {/* Glowing effect inside circle */}
+                    {hasTrustScore && (
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="42"
+                        fill="transparent"
+                        stroke={trustColor}
+                        strokeWidth="10"
+                        className="opacity-[0.03] blur-md transition-all duration-1000"
+                      />
+                    )}
+                    {Array.from({ length: 24 }).map((_, i) => {
+                      const angle = (i * 360) / 24;
+                      const activeTicksCount = hasTrustScore ? Math.round((trustScoreFormatted / 100) * 24) : 0;
+                      const isActive = i < activeTicksCount;
+                      
+                      return (
+                        <line
+                          key={i}
+                          x1="60"
+                          y1="16"
+                          x2="60"
+                          y2="26"
+                          stroke={isActive ? trustColor : 'rgba(255, 255, 255, 0.05)'}
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          transform={`rotate(${angle} 60 60)`}
+                          className="transition-all duration-500 ease-out"
+                        />
+                      );
+                    })}
                   </svg>
                   {/* Score text overlay */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-black text-white tracking-tight">{trustScoreFormatted}</span>
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Trust Index</span>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center mt-1">
+                    <span className={`text-3xl font-black tracking-tight transition-all duration-500 ${hasTrustScore ? 'text-white' : 'text-slate-500 animate-pulse'}`}>
+                      {hasTrustScore ? trustScoreFormatted : '--'}
+                    </span>
+                    <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Trust Index</span>
                   </div>
                 </div>
                 <div className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border ${trustBgClass} ${trustTextClass}`}>
@@ -183,29 +187,40 @@ export default function InvestigationDashboard({ result }) {
                   <p className="text-[11px] text-slate-500">Autonomous reliability parameters</p>
                 </div>
                 
-                {[
-                  { label: 'Domain Reputation', val: domainScore },
-                  { label: 'Recruiter Authority', val: recruiterScore },
-                  { label: 'UPI / Escrow Integrity', val: paymentScore },
-                  { label: 'Linguistic Risk Score', val: languageScore },
-                  { label: 'Pattern Divergence', val: similarityScore },
-                ].map((item, idx) => (
-                  <div key={idx} className="space-y-1.5">
-                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      <span>{item.label}</span>
-                      <span className="font-mono">{item.val}%</span>
-                    </div>
-                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-1000 ease-out"
-                        style={{
-                          width: `${item.val}%`,
-                          backgroundColor: item.val > 70 ? '#10b981' : item.val > 40 ? '#f59e0b' : '#ef4444'
-                        }}
-                      />
-                    </div>
+                {!hasTrustScore ? (
+                  <div className="space-y-3 py-2">
+                    {[1, 2, 3, 4, 5].map((idx) => (
+                      <div key={idx} className="space-y-1.5 animate-pulse">
+                        <div className="h-2.5 w-24 bg-white/5 rounded-full" />
+                        <div className="w-full h-1 bg-white/5 rounded-full" />
+                      </div>
+                    ))}
                   </div>
-                ))}
+                ) : (
+                  [
+                    { label: 'Domain Reputation', val: domainScore },
+                    { label: 'Recruiter Authority', val: recruiterScore },
+                    { label: 'UPI / Escrow Integrity', val: paymentScore },
+                    { label: 'Linguistic Risk Score', val: languageScore },
+                    { label: 'Pattern Divergence', val: similarityScore },
+                  ].map((item, idx) => (
+                    <div key={idx} className="space-y-1.5">
+                      <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <span>{item.label}</span>
+                        <span className="font-mono">{item.val}%</span>
+                      </div>
+                      <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-1000 ease-out"
+                          style={{
+                            width: `${item.val}%`,
+                            backgroundColor: item.val > 70 ? '#10b981' : item.val > 40 ? '#f59e0b' : '#ef4444'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
 
             </div>
@@ -223,15 +238,37 @@ export default function InvestigationDashboard({ result }) {
               <div className="absolute top-3 bottom-3 left-4 w-[1px] bg-white/5" />
 
               {timelineSteps.map((step, idx) => {
-                const isResolved = activeStep > idx
-                const isActive = activeStep === idx
-                const isFlagged = step.status === 'flagged'
+                const stepNum = step.stepNum
+                const isResolved = currentStep > stepNum
+                const isActive = currentStep === stepNum
+                const isPending = currentStep < stepNum
+
+                let isFlagged = false
+                let statusText = 'verified'
+
+                if (stepNum === 1) {
+                  const hasEntities = extractedEntities && Object.values(extractedEntities).some(v => v && (typeof v === 'string' ? v : v.length > 0))
+                  statusText = hasEntities ? 'metadata extracted' : 'verified'
+                } else if (stepNum === 2) {
+                  isFlagged = patternMatch?.matched
+                  statusText = isFlagged ? 'match flagged' : 'no threat match'
+                } else if (stepNum === 3) {
+                  isFlagged = hasTrustScore && trustScoreFormatted < 50
+                  statusText = hasTrustScore ? `index: ${trustScoreFormatted}%` : 'verified'
+                } else if (stepNum === 4) {
+                  isFlagged = riskLevel === 'HIGH' || riskLevel === 'CRITICAL'
+                  statusText = riskLevel ? `verdict: ${riskLevel}` : 'verified'
+                } else if (stepNum === 5) {
+                  statusText = reportId ? 'ledger updated' : 'registered'
+                } else if (stepNum === 6) {
+                  statusText = recommendedActions.length > 0 ? 'protocol mapped' : 'verified'
+                }
 
                 return (
                   <div
                     key={idx}
                     className={`flex items-start gap-4 transition-all duration-500
-                      ${isResolved ? 'opacity-100' : isActive ? 'opacity-100' : 'opacity-25'}
+                      ${!isPending ? 'opacity-100' : 'opacity-25'}
                     `}
                   >
                     {/* Timeline Node Icon */}
@@ -257,7 +294,7 @@ export default function InvestigationDashboard({ result }) {
                           <span className={`text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border
                             ${isFlagged ? 'text-rose-400 border-rose-500/10 bg-rose-500/5' : 'text-emerald-400 border-emerald-500/10 bg-emerald-500/5'}
                           `}>
-                            {isFlagged ? 'anomaly flagged' : 'verified'}
+                            {statusText}
                           </span>
                         )}
                       </h4>
@@ -277,7 +314,17 @@ export default function InvestigationDashboard({ result }) {
           {/* Audit Summary Panel */}
           <div className="surface p-6 border border-white/[0.04]">
             <div className="flex flex-wrap items-center gap-2.5 mb-4">
-              <RiskBadge level={riskLevel} size="large" />
+              {riskLevel ? (
+                <RiskBadge level={riskLevel} size="large" />
+              ) : (
+                <span className="inline-flex items-center gap-2 font-medium tracking-wide border rounded-full text-xs px-4 py-1.5 border-blue-500/20 bg-blue-500/5 text-blue-400 animate-pulse">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-blue-400" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+                  </span>
+                  <span className="font-semibold uppercase tracking-wider text-[10px]">ANALYZING THREAT</span>
+                </span>
+              )}
               {scamCategory && scamCategory !== 'Unknown' && (
                 <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 bg-white/5 px-3 py-1 rounded-full border border-white/5">
                   {scamCategory}
@@ -294,16 +341,26 @@ export default function InvestigationDashboard({ result }) {
               <Shield className="w-4 h-4 text-blue-400 flex-shrink-0" />
               Summary of Artifact Audit
             </h3>
-            <p className="text-sm text-slate-300 leading-relaxed font-medium bg-white/[0.01] border border-white/[0.03] p-4 rounded-xl">
-              {investigationSummary}
-            </p>
+            
+            {!investigationSummary ? (
+              <div className="space-y-2.5 bg-white/[0.01] border border-white/[0.03] p-4 rounded-xl animate-pulse">
+                <div className="h-3 w-full bg-white/5 rounded" />
+                <div className="h-3 w-5/6 bg-white/5 rounded" />
+                <div className="h-3 w-4/6 bg-white/5 rounded" />
+              </div>
+            ) : (
+              <p className="text-sm text-slate-300 leading-relaxed font-medium bg-white/[0.01] border border-white/[0.03] p-4 rounded-xl">
+                {investigationSummary}
+              </p>
+            )}
+            
             {reportId && (
               <p className="text-[10px] text-slate-600 mt-3 font-mono">Telemetry ID: {reportId}</p>
             )}
           </div>
 
           {/* Extracted Evidence Chips */}
-          {extractedEntities && Object.values(extractedEntities).some(v => v && (typeof v === 'string' ? v : v.length > 0)) && (
+          {extractedEntities && Object.values(extractedEntities).some(v => v && (typeof v === 'string' ? v : v.length > 0)) ? (
             <div className="surface p-6 border border-white/[0.04]">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />
@@ -322,37 +379,63 @@ export default function InvestigationDashboard({ result }) {
                 ))}
               </div>
             </div>
+          ) : (
+            <div className="surface p-6 border border-white/[0.04] animate-pulse">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-slate-600 flex-shrink-0" />
+                Extracted Intelligence
+              </h3>
+              <p className="text-[11px] text-slate-500">Parsing message content for threat indicators...</p>
+            </div>
           )}
 
           {/* Red Flags Panel */}
-          {redFlags && redFlags.length > 0 && (
-            <div className="surface p-6 border border-white/[0.04]">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-500" />
+          {hasTrustScore ? (
+            redFlags && redFlags.length > 0 ? (
+              <div className="surface p-6 border border-white/[0.04]">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-500" />
+                  Flagged Vulnerabilities
+                  <span className="ml-auto text-[10px] font-mono text-slate-500 bg-white/5 border border-white/5 px-2 py-0.5 rounded-md">
+                    {redFlags.length} Anomalies
+                  </span>
+                </h3>
+                <ul className="space-y-2.5">
+                  {redFlags.map((flag, i) => {
+                    const Icon = getFlagIcon(flag)
+                    const isFirst = i === 0 && flag.includes('fast-track')
+                    return (
+                      <li
+                        key={i}
+                        className={`flex items-start gap-3 p-3 rounded-xl border transition-all duration-300
+                          ${isFirst
+                            ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                            : 'bg-white/[0.01] border-white/[0.03] hover:border-white/10 hover:bg-white/[0.02]'
+                          }`}
+                      >
+                        <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isFirst ? 'text-rose-400' : 'text-amber-500'}`} />
+                        <span className="text-xs text-slate-300 leading-relaxed font-semibold">{flag}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            ) : (
+              <div className="surface p-6 border border-white/[0.04]">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-emerald-500" />
+                  Flagged Vulnerabilities
+                </h3>
+                <p className="text-xs text-emerald-400 font-medium">No severe anomalies detected in communication channels.</p>
+              </div>
+            )
+          ) : (
+            <div className="surface p-6 border border-white/[0.04] animate-pulse">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-slate-600 flex-shrink-0" />
                 Flagged Vulnerabilities
-                <span className="ml-auto text-[10px] font-mono text-slate-500 bg-white/5 border border-white/5 px-2 py-0.5 rounded-md">
-                  {redFlags.length} Anomalies
-                </span>
               </h3>
-              <ul className="space-y-2.5">
-                {redFlags.map((flag, i) => {
-                  const Icon = getFlagIcon(flag)
-                  const isFirst = i === 0 && flag.includes('fast-track')
-                  return (
-                    <li
-                      key={i}
-                      className={`flex items-start gap-3 p-3 rounded-xl border transition-all duration-300
-                        ${isFirst
-                          ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                          : 'bg-white/[0.01] border-white/[0.03] hover:border-white/10 hover:bg-white/[0.02]'
-                        }`}
-                    >
-                      <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isFirst ? 'text-rose-400' : 'text-amber-500'}`} />
-                      <span className="text-xs text-slate-300 leading-relaxed font-semibold">{flag}</span>
-                    </li>
-                  )
-                })}
-              </ul>
+              <p className="text-[11px] text-slate-500">Waiting for trust metrics resolution...</p>
             </div>
           )}
 
@@ -361,10 +444,43 @@ export default function InvestigationDashboard({ result }) {
       </div>
 
       {/* Recommended Action Plan (Action Card) */}
-      <ActionCard actions={recommendedActions} isFastTrack={isFastTrack} />
+      {recommendedActions && recommendedActions.length > 0 ? (
+        <ActionCard actions={recommendedActions} isFastTrack={isFastTrack} />
+      ) : (
+        <div className="surface p-6 border border-white/[0.04] animate-pulse">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+            Recommended Action Plan
+          </h3>
+          <p className="text-[11px] text-slate-500 mb-4">Suggested counter-scam steps based on AI analysis</p>
+          <div className="space-y-3.5">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex gap-4 p-4 rounded-xl bg-white/[0.01] border border-white/[0.03]">
+                <div className="w-7 h-7 bg-white/5 rounded-lg" />
+                <div className="flex-1 space-y-2 py-1">
+                  <div className="h-2 w-24 bg-white/5 rounded" />
+                  <div className="h-3 w-5/6 bg-white/5 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Database Pattern Matching Details */}
-      <PatternMatch patternMatch={patternMatch} />
+      {patternMatch ? (
+        <PatternMatch patternMatch={patternMatch} />
+      ) : (
+        <div className="surface p-6 border border-white/[0.04] animate-pulse">
+          <div className="flex items-center gap-2.5 mb-5">
+            <div className="w-8 h-8 bg-white/5 rounded-lg" />
+            <div>
+              <div className="h-3 w-32 bg-white/5 rounded" />
+              <div className="h-2 w-48 bg-white/5 rounded mt-1.5" />
+            </div>
+          </div>
+          <div className="h-10 bg-white/[0.01] border border-white/[0.03] rounded-xl" />
+        </div>
+      )}
 
     </div>
   )

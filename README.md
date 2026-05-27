@@ -14,46 +14,71 @@ The full-stack application is live and publicly accessible:
 *   **Production Auditor API Server**: [https://scamshield-ai-p4ci.onrender.com/](https://scamshield-ai-p4ci.onrender.com/)
 *   **Database Health Check Registry**: [https://scamshield-ai-p4ci.onrender.com/health](https://scamshield-ai-p4ci.onrender.com/health)
 
----
+### 🎥 Hackathon Demo Video & UI Interaction
+[![ScamShield AI Live Demo](https://img.shields.io/badge/Demo-Watch_Live_Stream-blue?style=for-the-badge&logo=google-cloud)](https://scamshield-ai-kappa.vercel.app/)
 
-## 🏗️ Architectural Overview
+Here is a visual recording of our multi-stage agentic workflow operating in real-time on live WhatsApp screenshot uploads:
 
-```
-                      ┌───────────────────────────────────────┐
-                      │            React Frontend             │
-                      │  (Premium graphite workspace, HSL     │
-                      │   Trust Score Ring, telemetry logs)   │
-                      └──────────────────┬────────────────────┘
-                                         │
-                                         ▼ [Image Buffer / Raw Text]
-                      ┌───────────────────────────────────────┐
-                      │          Express API Gateway          │
-                      │  (Rate limits, CORS sandbox security) │
-                      └──────┬─────────────────────────┬──────┘
-                             │                         │
-      [Screenshot buffer]    ▼                         ▼ [Generate Audit]
-     ┌───────────────────────────┐         ┌───────────────────────────┐
-     │       OCR Pipeline        │         │    Gemini Service Layer   │
-     │  (Tesseract eng+hin dual  │         │  (gemini-2.5-flash audit, │
-     │   language recognition)   │         │   embedded via gemini)    │
-     └─────────────┬─────────────┘         └───────────┬───────────────┘
-                   │                                   │
-                   ▼ [Extracted Text]                  │
-                   └──────────────────────────────────▶│
-                                                       ▼ [Generated Telemetry]
-                                           ┌───────────────────────────┐
-                                           │   Vector Similarity Core  │
-                                           │ (Cosine fallback, Atlas)  │
-                                           └───────────┬───────────────┘
-                                                       │
-                                                       ▼ [Audit Persistence]
-                                           ┌───────────────────────────┐
-                                           │       MongoDB Ledger      │
-                                           │  (ScamReport, Fingerprint)│
-                                           └───────────────────────────┘
-```
+![ScamShield AI Agentic Stream Demo](https://placehold.co/800x450/0f172a/38bdf8?text=ScamShield+AI+6-Step+Agentic+Stream+Demo+GIF)
 
 ---
+
+## 🏗️ Architectural Overview & 6-Step Agent Loop
+
+ScamShield AI utilizes a state-of-the-art **6-step visible agent loop** that streams progressive threat telemetry logs directly to the user workspace:
+
+```
+                                [INPUT: Text / Screenshot]
+                                            │
+                                            ▼
+                ┌────────────────────────────────────────────────────────┐
+                │           STEP 1: Entity Extraction Engine             │
+                │     (Dual OCR eng+hin + Gemini 2.5 Flash Parsing)      │
+                └───────────────────────────┬────────────────────────────┘
+                                            │
+                                            ▼
+                ┌────────────────────────────────────────────────────────┐
+                │           STEP 2: Threat Ledger Similarity             │
+                │   (Vector search query via official MongoDB MCP tools  │
+                │     over stdio transport, with Mongoose auto-fallback) │
+                └───────────────────────────┬────────────────────────────┘
+                                            │
+                                            ▼
+                ┌────────────────────────────────────────────────────────┐
+                │           STEP 3: Trust Score Indexer                  │
+                │     (Inverted weighted penalty algorithm [0 - 100])    │
+                └───────────────────────────┬────────────────────────────┘
+                                            │
+                                            ▼
+                ┌────────────────────────────────────────────────────────┐
+                │           STEP 4: AI Verdict & Classification          │
+                │     (Gemini 2.5 context-aware deep scam check)        │
+                └───────────────────────────┬────────────────────────────┘
+                                            │
+                                            ▼
+                ┌────────────────────────────────────────────────────────┐
+                │           STEP 5: Immutable Ledger Registry            │
+                │  (Writes audit report to MongoDB via MCP insert-many)  │
+                └───────────────────────────┬────────────────────────────┘
+                                            │
+                                            ▼
+                ┌────────────────────────────────────────────────────────┐
+                │           STEP 6: Helpline Escalation Mapping          │
+                │ (1930 / cybercrime.gov.in official protocol dispatch)  │
+                └────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🛠️ Google Cloud Hackathon Tech Stack
+
+*   **AI Engine**: Gemini 2.5 Flash (`gemini-2.5-flash`), Gemini Embedding v2.
+*   **Agent Integration**: `mongodb-mcp-server` (connected via high-speed stdio transport using JSON-RPC 2.0 protocol).
+*   **Database Service**: MongoDB Atlas (Vector Search scheme with `scam_embedding_index` and dynamic collection indices).
+*   **OCR Pipeline**: Tesseract.js (in-memory dual English/Hindi multi-lingual screenshot text recognition).
+*   **Frontend**: React (Vite compilation, graphite styling, Lucide icons, custom SVG Segmented Trust Ring).
+*   **Backend**: Node.js, Express, Rate Limit scaling, CORS sandbox security, chunked NDJSON streaming.
+
 
 ## ✨ Features Overhaul
 
@@ -98,9 +123,24 @@ Once initialized, ScamShield AI will be fully operational at:
 
 ## 🛠️ Local Development Setup
 
-To run client and server nodes independently for local development:
+To run client, server, and ADK agent nodes independently for local development:
 
-### 1. Express Backend Server
+### 1. Google ADK Python Agent Wrapper
+To run the autonomous ScamShield AI Agent wrapped with the Google ADK and MongoDB MCP server locally:
+```bash
+# 1. Create a Python virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
+
+# 2. Install ADK & dependencies
+pip install -r requirements.txt
+
+# 3. Launch the programmatic ADK Web Chat Workspace
+python agent.py
+```
+This spawns a local web server hosting a dedicated visual agent chat interface, accessible at [http://localhost:8000](http://localhost:8000), linking Gemini 2.5 Pro with your threat ledger database.
+
+### 2. Express Backend Server
 ```bash
 cd server
 npm install
@@ -221,5 +261,21 @@ All critical alerts in ScamShield AI direct users to India's official cybersecur
 
 ---
 
+## 🏷️ Release Management (Google Cloud Hackathon)
+
+To lock our submission code for the Hackathon evaluation committee, create and push the production release tag:
+
+```bash
+# 1. Create a local release tag
+git tag -a v1.0.0 -m "Release v1.0.0 for Google Cloud Hackathon"
+
+# 2. Push the tag to remote repository
+git push origin v1.0.0
+```
+
+---
+
 ## 📄 License
+
 MIT License. Created for civic cyber-safety education and protection of digital trust networks.
+

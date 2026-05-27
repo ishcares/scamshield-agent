@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react'
-import axios from 'axios'
-import { Shield, Sparkles, AlertOctagon, Terminal, Activity, HelpCircle } from 'lucide-react'
+import { Shield, Sparkles, AlertOctagon, Activity } from 'lucide-react'
 import UploadPanel from '../components/UploadPanel'
 import InvestigationDashboard from '../components/InvestigationDashboard'
 import ScamFeed from '../components/ScamFeed'
@@ -13,12 +12,14 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [loadingStatus, setLoadingStatus] = useState('Executing natural language audit parameters via Gemini 1.5 Pro')
+  const [loadingStep, setLoadingStep] = useState(0)
   const resultsRef = useRef(null)
 
   const handleAnalyze = async ({ text, file }) => {
     setIsLoading(true)
     setError(null)
     setResult(null)
+    setLoadingStep(0)
     setLoadingStatus('Running autonomous scam analysis via Gemini 1.5 Pro...')
 
     const formData = new FormData()
@@ -30,36 +31,81 @@ export default function Home() {
 
     const executeRequest = async (attempt = 1) => {
       try {
-        const res = await axios.post(`${API_URL}/api/analyze`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 60000, // 60s for OCR + Gemini
+        const response = await fetch(`${API_URL}/api/analyze`, {
+          method: 'POST',
+          body: formData,
         })
-        return res.data
+
+        if (!response.ok) {
+          const isServerWaking = response.status === 503 || response.status === 504;
+          if (isServerWaking && attempt < 3) {
+            setLoadingStatus(`Server waking up... retrying in 5s (Attempt ${attempt}/3)...`)
+            await new Promise((resolve) => setTimeout(resolve, 5000))
+            return await executeRequest(attempt + 1)
+          }
+          throw new Error(`Audit Gateway Error (HTTP ${response.status})`)
+        }
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        let accumulatedResult = {}
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop()
+
+          for (const line of lines) {
+            if (!line.trim()) continue
+            
+            try {
+              const parsed = JSON.parse(line)
+
+              if (parsed.error) {
+                throw new Error(parsed.error)
+              }
+
+              if (parsed.step !== undefined) {
+                setLoadingStep(parsed.step)
+                setLoadingStatus(parsed.status)
+
+                // Accumulate dynamic values into result
+                accumulatedResult = {
+                  ...accumulatedResult,
+                  ...parsed
+                }
+                setResult({ ...accumulatedResult })
+              }
+            } catch (jsonErr) {
+              console.warn('[Stream Parsing Error]:', jsonErr.message)
+            }
+          }
+        }
+
+        // Scroll to results once complete
+        setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 100)
+
       } catch (err) {
-        const isNetworkOrSleeping = !err.response || err.response.status === 503 || err.response.status === 504 || err.code === 'ECONNABORTED';
-        if (isNetworkOrSleeping && attempt < 3) {
-          setLoadingStatus(`Cloud server is waking up... Retrying (Attempt ${attempt}/3)...`)
+        const isNetworkErr = err.message.includes('fetch') || err.message.includes('network') || err.message.includes('Failed to fetch');
+        if (isNetworkErr && attempt < 3) {
+          setLoadingStatus(`Server waking up... retrying in 5s (Attempt ${attempt}/3)...`)
           await new Promise((resolve) => setTimeout(resolve, 5000))
           return await executeRequest(attempt + 1)
         }
-        throw err;
+        throw err
       }
     }
 
     try {
-      const data = await executeRequest()
-      setResult(data)
-
-      // Scroll to results
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 100)
+      await executeRequest()
     } catch (err) {
-      const msg =
-        err.response?.data?.error ||
-        (err.code === 'ECONNABORTED' ? 'Request timed out. Please try again.' : null) ||
-        'Investigation failed. Please check your connection and try again.'
-      setError(msg)
+      setError(err.message || 'Investigation failed. Please check your connection and try again.')
     } finally {
       setIsLoading(false)
     }
@@ -134,30 +180,49 @@ export default function Home() {
                   <p className="text-[11px] text-slate-500 mt-1">{loadingStatus}</p>
                 </div>
                 
-                {/* Visual telemetry scan log */}
-                <div className="w-full max-w-xs bg-white/[0.01] border border-white/[0.03] rounded-xl p-4 text-left space-y-2.5 font-mono text-[10px] text-slate-500">
+                {/* 6-Step Agent Progress Indicators */}
+                <div className="w-full max-w-sm bg-white/[0.01] border border-white/[0.03] rounded-2xl p-5 text-left space-y-3 font-sans text-xs">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 font-mono">Agent Operation Pipeline</div>
                   {[
-                    'Initializing secure sandboxed auditor...',
-                    'Auditing target communication parameters...',
-                    'Analyzing domain authority & mail records...',
-                    'Cross-referencing global similarity indexes...'
-                  ].map((step, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-2 animate-pulse"
-                      style={{ animationDelay: `${i * 300}ms` }}
-                    >
-                      <Activity className="w-3.5 h-3.5 text-blue-400/50" />
-                      <span>{step}</span>
-                    </div>
-                  ))}
+                    'Step 1: Extracted entities (UPI, phone, domain, names)',
+                    'Step 2: MongoDB ledger query & pattern vector matching',
+                    'Step 3: Platform Trust Score calculation',
+                    'Step 4: AI threat verdict & scam category audit',
+                    'Step 5: Persisting telemetry logs to database',
+                    'Step 6: Cybercrime helpline escalation mapping'
+                  ].map((step, i) => {
+                    const stepNum = i + 1;
+                    const isCompleted = loadingStep > stepNum;
+                    const isActive = loadingStep === stepNum;
+                    
+                    return (
+                      <div
+                        key={i}
+                        className={`flex items-center gap-3 transition-all duration-300 ${
+                          isCompleted ? 'text-emerald-400' : isActive ? 'text-blue-400 font-bold' : 'text-slate-600'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border text-[10px] font-bold transition-all
+                          ${isCompleted 
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                            : isActive 
+                            ? 'bg-blue-500/10 border-blue-500/20 text-blue-400 animate-pulse' 
+                            : 'bg-white/5 border-white/5 text-slate-600'
+                          }
+                        `}>
+                          {isCompleted ? '✓' : stepNum}
+                        </div>
+                        <span className="flex-1 truncate">{step}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
 
             {/* Dashboard audit results */}
             <div ref={resultsRef} className="pt-2">
-              {result && !isLoading && <InvestigationDashboard result={result} />}
+              {result && (result.investigationSummary || result.extractedEntities) && <InvestigationDashboard result={result} isLoading={isLoading} />}
             </div>
           </div>
 

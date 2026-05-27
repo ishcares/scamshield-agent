@@ -85,6 +85,25 @@ app.get('/health', (req, res) => {
   });
 });
 
+// ── Agent Status check (Hackathon telemetry) ──────────────────────────────
+app.get('/api/agent-status', (req, res) => {
+  const mcpClient = require('./services/mcpService');
+  res.json({
+    status: 'active',
+    agentPipeline: {
+      stepsCount: 6,
+      modelUsed: 'gemini-2.5-flash',
+      embeddingModelUsed: 'gemini-embedding-2',
+      ocrEngine: 'Tesseract.js (eng+hin)'
+    },
+    mongodbMcpServer: {
+      connected: mcpClient.isConnected,
+      mode: mcpClient.isConnected ? 'MCP_JSON_RPC_ACTIVE' : 'MONGOOSE_FALLBACK_ACTIVE'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // ── 404 handler ───────────────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.method} ${req.path} not found.` });
