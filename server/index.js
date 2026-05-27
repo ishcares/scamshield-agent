@@ -14,6 +14,14 @@ const PORT = process.env.PORT || 5000;
 // ── Security headers ──────────────────────────────────────────────────────
 app.use(helmet());
 
+// ── Path normalization (Cures double slashes in client URLs) ──────────────
+app.use((req, res, next) => {
+  if (req.url && req.url.includes('//')) {
+    req.url = req.url.replace(/\/{2,}/g, '/');
+  }
+  next();
+});
+
 // ── CORS ──────────────────────────────────────────────────────────────────
 app.use(
   cors({

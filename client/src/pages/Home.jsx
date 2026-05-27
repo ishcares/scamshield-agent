@@ -5,7 +5,8 @@ import UploadPanel from '../components/UploadPanel'
 import InvestigationDashboard from '../components/InvestigationDashboard'
 import ScamFeed from '../components/ScamFeed'
 
-const API_URL = import.meta.env.VITE_API_URL || ''
+const RAW_API_URL = import.meta.env.VITE_API_URL || ''
+const API_URL = RAW_API_URL.endsWith('/') ? RAW_API_URL.slice(0, -1) : RAW_API_URL
 
 export default function Home() {
   const [result, setResult] = useState(null)
