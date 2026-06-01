@@ -11,7 +11,7 @@ export default function Home() {
   const [result, setResult] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [loadingStatus, setLoadingStatus] = useState('Executing natural language audit parameters via Gemini 1.5 Pro')
+  const [loadingStatus, setLoadingStatus] = useState('Routing through Google ADK Agent → Gemini 2.5 Flash + MongoDB MCP...')
   const [loadingStep, setLoadingStep] = useState(0)
   const resultsRef = useRef(null)
 
@@ -20,7 +20,7 @@ export default function Home() {
     setError(null)
     setResult(null)
     setLoadingStep(0)
-    setLoadingStatus('Running autonomous scam analysis via Gemini 1.5 Pro...')
+    setLoadingStatus('Invoking Google ADK Agent pipeline → Gemini 2.5 Flash...')
 
     const formData = new FormData()
     if (file) {
@@ -119,7 +119,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 bg-blue-500/[0.04] border border-blue-500/10 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-wider text-blue-400 mb-6">
             <Sparkles className="w-3.5 h-3.5" />
-            Empowered by Gemini 1.5 Pro · Autonomous Trust Telemetry
+            Powered by Google ADK Agent · Gemini 2.5 Flash · MongoDB Atlas MCP
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-[1.1] max-w-3xl mx-auto">
             Democratizing scam intelligence with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">AI Precision</span>

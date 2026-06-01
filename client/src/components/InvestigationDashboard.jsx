@@ -1,10 +1,14 @@
+import React from 'react'
 import {
   Globe, CreditCard, AlertTriangle, Clock, Phone, Link2, User, Building,
-  Shield, Zap, CheckCircle2, AlertOctagon, HelpCircle, FileText
+  Shield, Zap, CheckCircle2, AlertOctagon, HelpCircle, FileText, Download, ExternalLink
 } from 'lucide-react'
 import RiskBadge from './RiskBadge'
 import PatternMatch from './PatternMatch'
 import ActionCard from './ActionCard'
+
+const RAW_API_URL = import.meta.env.VITE_API_URL || ''
+const API_URL = RAW_API_URL.endsWith('/') ? RAW_API_URL.slice(0, -1) : RAW_API_URL
 
 // Function to map red flags to specific icons
 function getFlagIcon(flag) {
@@ -31,6 +35,31 @@ function EntityChip({ icon: Icon, label, value }) {
 
 export default function InvestigationDashboard({ result }) {
   if (!result) return null
+
+  // ── FIR Download Handler ─────────────────────────────────────────────────
+  const [firDownloading, setFirDownloading] = React.useState(false)
+
+  const downloadFIR = async () => {
+    if (!result.reportId) return
+    setFirDownloading(true)
+    try {
+      const response = await fetch(`${API_URL}/api/fir/${result.reportId}`)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `ScamShieldAgent_FIR_${result.reportId.toString().slice(-8).toUpperCase()}.txt`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      console.error('[FIR Download] Failed:', err)
+    } finally {
+      setFirDownloading(false)
+    }
+  }
 
   const {
     riskLevel,
@@ -479,6 +508,56 @@ export default function InvestigationDashboard({ result }) {
             </div>
           </div>
           <div className="h-10 bg-white/[0.01] border border-white/[0.03] rounded-xl" />
+        </div>
+      )}
+
+      {/* ── Step 6: FIR Complaint Generator ───────────────────────────────── */}
+      {result.final && reportId && ['HIGH', 'CRITICAL'].includes(riskLevel) && (
+        <div className="surface p-6 border border-rose-500/10 bg-rose-500/[0.01] relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-rose-500/[0.03] rounded-full blur-3xl pointer-events-none" />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <FileText className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-rose-400">
+                  Step 6 — Cybercrime Escalation Protocol
+                </h3>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed max-w-lg">
+                Pre-filled FIR generated from extracted evidence. Submit at{' '}
+                <span className="text-blue-400 font-semibold">cybercrime.gov.in</span>{' '}
+                or call helpline <span className="text-white font-bold">1930</span>.
+              </p>
+              <p className="text-[10px] text-slate-600 font-mono mt-2">Telemetry ID: {reportId}</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+              <button
+                id="fir-download-btn"
+                onClick={downloadFIR}
+                disabled={firDownloading}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider
+                           bg-rose-500/10 border border-rose-500/20 text-rose-400
+                           hover:bg-rose-500/20 hover:border-rose-500/30 hover:text-rose-300
+                           transition-all duration-200 disabled:opacity-50"
+              >
+                <Download className={`w-3.5 h-3.5 ${firDownloading ? 'animate-bounce' : ''}`} />
+                <span>{firDownloading ? 'Generating...' : 'Download FIR Template'}</span>
+              </button>
+              <a
+                href="https://cybercrime.gov.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+                id="cybercrime-portal-link"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider
+                           border border-white/[0.05] text-slate-400
+                           hover:border-blue-500/20 hover:text-blue-400 hover:bg-blue-500/[0.02]
+                           transition-all duration-200"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>File at Portal</span>
+              </a>
+            </div>
+          </div>
         </div>
       )}
 

@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 
 const analyzeRouter = require('./routes/analyze');
 const reportsRouter = require('./routes/reports');
+const firRouter = require('./routes/fir');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -74,12 +75,13 @@ app.use('/api/analyze', limiter);
 // ── Routes ────────────────────────────────────────────────────────────────
 app.use('/api', analyzeRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/fir', firRouter);
 
 // ── Health check ──────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
-    service: 'ScamShield AI Server',
+    service: 'ScamShield Agent Server',
     timestamp: new Date().toISOString(),
     mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
   });
@@ -94,7 +96,9 @@ app.get('/api/agent-status', (req, res) => {
       stepsCount: 6,
       modelUsed: 'gemini-2.5-flash',
       embeddingModelUsed: 'gemini-embedding-2',
-      ocrEngine: 'Tesseract.js (eng+hin)'
+      ocrEngine: 'Tesseract.js (eng+hin)',
+      framework: 'Google ADK (Vertex AI Agent Builder)',
+      adkBridgeUrl: process.env.AGENT_URL || 'http://localhost:8080',
     },
     mongodbMcpServer: {
       connected: mcpClient.isConnected,
@@ -328,7 +332,7 @@ mongoose
     console.log(`[MongoDB] Connected to: ${MONGODB_URI}`);
     await seedDatabase();
     app.listen(PORT, '0.0.0.0', () => {
-      console.log(`[Server] ScamShield AI running on port ${PORT}`);
+      console.log(`[Server] ScamShield Agent running on port ${PORT}`);
       console.log(`[Server] Health: http://localhost:${PORT}/health`);
     });
   })

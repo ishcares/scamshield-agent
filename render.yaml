@@ -1,8 +1,9 @@
 # ─────────────────────────────────────────
 # ScamShield AI — Render Blueprint (render.yaml)
+# Two services: Express API + Python ADK Agent Bridge
 # ─────────────────────────────────────────
 services:
-  # Express Backend API Server
+  # ── Service 1: Express Backend API Server ──────────────────────────────
   - type: web
     name: scamshield-api
     env: node
@@ -12,12 +13,34 @@ services:
     startCommand: node index.js
     envVars:
       - key: GEMINI_API_KEY
-        sync: false # Render UI will prompt user to input this securely
+        sync: false
       - key: MONGODB_URI
-        sync: false # Render UI will prompt user for their MongoDB Atlas URI
+        sync: false
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 5000
       - key: CLIENT_URL
-        value: "*" # Standard CORS wildcard or custom frontend domain
+        value: "*"
+      - key: AGENT_URL
+        # Point to the Python ADK bridge service internal URL
+        # On Render: use the internal hostname of scamshield-agent service
+        # Format: https://scamshield-agent.onrender.com
+        # Leave as localhost for local dev (both run on same machine)
+        value: "http://localhost:8080"
+
+  # ── Service 2: Python ADK Agent Bridge ────────────────────────────────
+  - type: web
+    name: scamshield-agent
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python agent.py serve
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: AGENT_PORT
+        value: 8080
+

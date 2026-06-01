@@ -1,7 +1,7 @@
 {
   "name": "scamshield-server",
   "version": "1.0.0",
-  "description": "ScamShield AI — Express backend",
+  "description": "ScamShield Agent — Express backend",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

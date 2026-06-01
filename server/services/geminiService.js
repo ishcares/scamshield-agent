@@ -1,6 +1,6 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const SYSTEM_PROMPT = `You are ScamShield AI — an autonomous cyber-investigation agent specialized in detecting recruitment scams, phishing attacks, fake internship offers, onboarding-fee fraud, UPI scams, impersonation attacks, and malicious financial schemes targeting students and job seekers in India.
+const SYSTEM_PROMPT = `You are ScamShield Agent — an autonomous cyber-investigation agent specialized in detecting recruitment scams, phishing attacks, fake internship offers, onboarding-fee fraud, UPI scams, impersonation attacks, and malicious financial schemes targeting students and job seekers in India.
 
 Your job is to investigate, verify, reason, compare, explain, and recommend actions like a real cyber fraud analyst.
 

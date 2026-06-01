@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
 import { Shield, History, Home, AlertTriangle, Sparkles, Terminal } from 'lucide-react'
 import ErrorBoundary from './components/ErrorBoundary'
+import AgentStatusPanel from './components/AgentStatusPanel'
 import HomePage from './pages/Home'
 import HistoryPage from './pages/History'
 
@@ -21,10 +22,10 @@ function Navbar() {
           </div>
           <div className="flex items-center">
             <span className="text-sm font-bold tracking-widest text-slate-400 group-hover:text-white uppercase transition-colors">ScamShield</span>
-            <span className="text-sm font-black tracking-widest text-blue-400 ml-1 uppercase">AI</span>
+            <span className="text-sm font-black tracking-widest text-blue-400 ml-1 uppercase">Agent</span>
           </div>
           <span className="hidden sm:inline text-[9px] font-bold text-slate-500 bg-white/5 px-2 py-0.5 rounded-full border border-white/5 tracking-wider">
-            SANDBOX v1.2
+            ADK Agent v2.0
           </span>
         </Link>
 
@@ -79,6 +80,9 @@ export default function App() {
           
           {/* Navbar */}
           <Navbar />
+          
+          {/* Global Agent Status Badge */}
+          <AgentStatusPanel />
           
           {/* Main Workspace Frame */}
           <main className="pt-24 pb-12 relative z-10">

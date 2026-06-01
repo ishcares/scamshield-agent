@@ -3,7 +3,8 @@ const multer = require('multer');
 const sanitizeHtml = require('sanitize-html');
 const router = express.Router();
 
-const { analyzeWithGemini, generateEmbedding } = require('../services/geminiService');
+const { generateEmbedding } = require('../services/geminiService');
+const { analyzeViaBestAvailable } = require('../services/agentService');
 const { extractTextFromImage } = require('../services/ocrService');
 const mcpClient = require('../services/mcpService');
 const ScamReport = require('../models/ScamReport');
@@ -65,11 +66,11 @@ router.post('/analyze', upload.single('file'), async (req, res) => {
       inputText = inputText.slice(0, 15000);
     }
 
-    // Trigger Gemini to extract initial telemetry
-    const analysisResult = await analyzeWithGemini(inputText);
+    // Route through Google ADK Agent (with Gemini fallback)
+    const { result: analysisResult, usedADK } = await analyzeViaBestAvailable(inputText);
     const extractedEntities = analysisResult.extractedEntities || {};
 
-    sendStep(1, 'Entity Extraction Complete', { extractedEntities, inputText });
+    sendStep(1, 'Entity Extraction Complete', { extractedEntities, inputText, usedADK });
 
     // ── STEP 2: MONGODB LEDGER QUERY (MCP INTEGRATION) ──────────────────────
     sendStep(2, 'Querying Global Threat Ledger via MongoDB MCP Server...');
