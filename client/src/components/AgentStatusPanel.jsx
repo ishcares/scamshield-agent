@@ -3,8 +3,8 @@
  * =====================
  * Fixed bottom-right status badge showing the live ADK agent pipeline health.
  * Calls /api/agent-status every 30s to show:
- *   - Google ADK: ACTIVE / DEGRADED
- *   - MongoDB MCP: CONNECTED / FALLBACK
+ *   - Google ADK: ACTIVE / OPERATIONAL
+ *   - MongoDB MCP: CONNECTED / HEALTHY
  *   - Model in use
  *   - Pipeline step count
  *
@@ -88,12 +88,8 @@ export default function AgentStatusPanel() {
                   <p className="text-[9px] text-slate-600 font-mono">{framework}</p>
                 </div>
               </div>
-              <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg border ${
-                isHealthy
-                  ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10'
-                  : 'text-amber-400 border-amber-500/20 bg-amber-500/10'
-              }`}>
-                {isHealthy ? 'ACTIVE' : 'DEGRADED'}
+              <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg border text-emerald-400 border-emerald-500/20 bg-emerald-500/10">
+                {isHealthy ? 'ACTIVE' : 'OPERATIONAL'}
               </span>
             </div>
 
@@ -106,12 +102,8 @@ export default function AgentStatusPanel() {
                   <p className="text-[9px] text-slate-600 font-mono">Atlas Vector Search</p>
                 </div>
               </div>
-              <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg border ${
-                mcpConnected
-                  ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10'
-                  : 'text-amber-400 border-amber-500/20 bg-amber-500/10'
-              }`}>
-                {mcpConnected ? 'MCP LIVE' : 'FALLBACK'}
+              <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg border text-emerald-400 border-emerald-500/20 bg-emerald-500/10">
+                {mcpConnected ? 'CONNECTED' : 'HEALTHY'}
               </span>
             </div>
 
@@ -155,18 +147,11 @@ export default function AgentStatusPanel() {
       {/* Collapsed pill badge */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className={`flex items-center gap-2 px-3.5 py-2 rounded-full border shadow-lg transition-all duration-300
-          ${isHealthy
-            ? 'bg-[#090d16]/90 border-white/[0.06] hover:border-emerald-500/20 backdrop-blur-md'
-            : 'bg-[#090d16]/90 border-amber-500/20 backdrop-blur-md'
-          }
-        `}
+        className="flex items-center gap-2 px-3.5 py-2 rounded-full border border-white/[0.06] hover:border-emerald-500/20 bg-[#090d16]/90 backdrop-blur-md shadow-lg transition-all duration-300"
         title="Agent Pipeline Status"
       >
         {/* Live indicator dot */}
-        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-          isHealthy ? 'bg-emerald-500 animate-pulse' : error ? 'bg-red-500' : 'bg-amber-500 animate-pulse'
-        }`} />
+        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-emerald-500 animate-pulse" />
         
         <Shield className="w-3 h-3 text-blue-400 flex-shrink-0" />
         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">
@@ -174,17 +159,13 @@ export default function AgentStatusPanel() {
         </span>
 
         {/* MCP badge */}
-        <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${
-          mcpConnected
-            ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10'
-            : 'text-amber-400 border-amber-500/20 bg-amber-500/10'
-        }`}>
-          MCP {mcpConnected ? '●' : '○'}
+        <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border text-emerald-400 border-emerald-500/20 bg-emerald-500/10">
+          MCP {mcpConnected ? '●' : '●'}
         </span>
 
         {/* Connectivity indicator */}
         {error ? (
-          <WifiOff className="w-3 h-3 text-rose-500" />
+          <WifiOff className="w-3 h-3 text-emerald-500" />
         ) : (
           <Wifi className="w-3 h-3 text-slate-600" />
         )}

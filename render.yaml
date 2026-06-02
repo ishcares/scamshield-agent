@@ -27,7 +27,7 @@ services:
         # On Render: use the internal hostname of scamshield-agent service
         # Format: https://scamshield-agent.onrender.com
         # Leave as localhost for local dev (both run on same machine)
-        value: "http://localhost:8080"
+        value: "https://scamshield-agent.onrender.com"
 
   # ── Service 2: Python ADK Agent Bridge ────────────────────────────────
   - type: web
