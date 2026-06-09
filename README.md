@@ -27,7 +27,7 @@
 
 ## 🎥 Demo Video
 
-> *(3-minute demo — link to be added before submission)*
+> 
 
 [![Watch Demo](https://img.shields.io/badge/Watch-3min%20Demo%20Video-red?logo=youtube&style=for-the-badge)](YOUR_DEMO_VIDEO_URL)
 
