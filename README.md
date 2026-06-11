@@ -29,7 +29,7 @@
 
 > 
 
-[![Watch Demo](https://img.shields.io/badge/Watch-3min%20Demo%20Video-red?logo=youtube&style=for-the-badge)][(https://vimeo.com/1200506913?share=copy&fl=sv&fe=ci)]
+[![Watch Demo](https://img.shields.io/badge/Watch-3min%20Demo%20Video-red?logo=youtube&style=for-the-badge)](https://vimeo.com/1200506913?share=copy&fl=sv&fe=ci)
 
 ---
 
